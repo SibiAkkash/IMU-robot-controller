@@ -29,4 +29,4 @@ allow_anonymous true
 
 The `subscriber.py` and `publisher.py` have sample implementations of pub sub with mqtt.  
 
-_Set appropriate IP and port of the mosquitto broker_.  
+_Set appropriate IP and port to connect to the mosquitto broker_.  
