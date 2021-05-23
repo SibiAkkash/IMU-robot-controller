@@ -11,7 +11,7 @@ Clone the repo
 ## Local mosquitto broker
 * Download [mosquitto](https://mosquitto.org/download/)
 * `cd` into the install location
-* Add these lines to the `mosquitto.conf` file, to allow remote clients to connect. 
+* Add these lines to the `mosquitto.conf` file. 
 ```
 per_listener_settings true
 listener 1883
@@ -19,6 +19,8 @@ protocol mqtt
 
 listener 8883
 protocol websockets
+
+allow_anonymous true
 ```
 
 * **Remove trailing spaces from the above lines, if any**
@@ -27,4 +29,4 @@ protocol websockets
 
 The `subscriber.py` and `publisher.py` have sample implementations of pub sub with mqtt.  
 
-_Set appropriate IP and port of the mosquitto broker_.  
+_Set appropriate IP and port to connect to the mosquitto broker_.  
