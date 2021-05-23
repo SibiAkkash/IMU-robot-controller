@@ -9,7 +9,7 @@ Clone the repo
 * `python -m pip install -r requirements.txt`
 
 ## Local mosquitto broker
-* Download [mosquitto]([mosquitto](https://mosquitto.org/download/))
+* Download [mosquitto](https://mosquitto.org/download/)
 * `cd` into the install location
 * Add these lines to the `mosquitto.conf` file, to allow remote clients to connect. 
 ```
