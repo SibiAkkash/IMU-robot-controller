@@ -1,11 +1,10 @@
 import numpy as np
-import ahrs
+import pandas as pd
+import math
+
 from ahrs.filters import EKF
 from ahrs.common.orientation import acc2q
 from ahrs.common.quaternion import QuaternionArray
-from ahrs.utils.io import load
-import pandas as pd
-import math
 
 import pygame
 from pygame.locals import *
@@ -166,12 +165,13 @@ def process_data(
         estimate = ekf.update(Q[-1], gyro_list[t], acc_list[t])
         print(estimate)
         Q.append(estimate)
+
     # get orientation estimates for each sensor sample
-    # ekf = EKF(gyr=gyro_list, acc=acc_list, mag=mag_list, frame=frame)
-    # euler_angles = QuaternionArray(ekf.Q).to_angles()
+    ekf = EKF(gyr=gyro_list, acc=acc_list, mag=mag_list, frame=frame)
+    euler_angles = QuaternionArray(ekf.Q).to_angles()
     print("Converted quaternions to euler angles")
 
-    # return euler_angles
+    return euler_angles
 
 
 # euler_angles_ned = process_data(
@@ -191,29 +191,22 @@ def process_data(
 # num_samples = len(euler_angles_ned)
 
 
-def main():
-    pygame.init()
-    display = (800, 600)
-    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+# def main():
+#     pygame.init()
+#     display = (800, 600)
+#     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
 
-    resizewin(800, 600)
-    initWindow()
+#     resizewin(800, 600)
+#     initWindow()
 
-    for i in range(num_samples):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
+#     for i in range(num_samples):
+#         for event in pygame.event.get():
+#             if event.type == pygame.QUIT:
+#                 pygame.quit()
+#                 quit()
 
-        draw(euler_angles_ned[i])
+#         draw(euler_angles_ned[i])
 
-        pygame.display.flip()
-        pygame.time.wait(10)
+#         pygame.display.flip()
+#         pygame.time.wait(10)
 
-
-# if __name__ == "__main__":
-#     process_data(
-#         acc_path="acc.csv", gyro_path="ang_vel.csv", mag_path="mag.csv", frame="NED"
-#     )
-#     pygame.quit()
-#     quit()
