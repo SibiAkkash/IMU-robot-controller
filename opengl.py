@@ -26,21 +26,33 @@ def drawText(position, textString, size):
     )
 
 
-def draw(angles) -> None:
+def quat_to_ypr(q):
+    yaw = math.atan2(
+        2.0 * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]
+    )
+    pitch = -math.sin(2.0 * (q[1] * q[3] - q[0] * q[2]))
+    roll = math.atan2(
+        2.0 * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]
+    )
+    pitch *= 180.0 / math.pi
+    yaw *= 180.0 / math.pi
+    yaw -= -1.15  # Declination at Chandrapur, Maharashtra is - 0 degress 13 min
+    roll *= 180.0 / math.pi
+    return [yaw, pitch, roll]
+
+
+def draw(quat) -> None:
     # print(f'drawing phone orientation... {angles}')
     # psi, theta, phi -> # yaw, pitch, roll
 
     # ? roll(x), pitch(y), yaw(z) -> Normal
     # ? roll(y), pitch(x), yaw(z) -> phone
 
-    [roll, pitch, yaw] = angles
-    # convert to angles
-    pitch *= 180.0 / math.pi
-    yaw *= 180.0 / math.pi
-    yaw -= (
-        -1.15
-    )  # magnetic Declination at Chennai, TamilNadu, India is - 1 degress 15 min
-    roll *= 180.0 / math.pi
+    # print(quat)
+    # [ 0.63203606  0.04095045 -0.27498346 -0.72335163]
+    [w, nx, ny, nz] = quat
+
+    [yaw, pitch, roll] = quat_to_ypr(quat)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
@@ -48,15 +60,14 @@ def draw(angles) -> None:
 
     drawText((-2.6, -1.8, 2), "Yaw: %f, Pitch: %f, Roll: %f" % (yaw, pitch, roll), 16)
 
-    glRotatef(-pitch, 0.00, 0.00, 1.00)
-    glRotatef(roll, 1.00, 0.00, 0.00)
-    glRotatef(yaw, 0.00, 1.00, 0.00)
+    glRotatef(2 * math.acos(w) * 180.00 / math.pi, -1 * nx, nz, ny)
 
     # glRotatef(-yaw, 0.00, 0.00, 1.00)
     # glRotatef(pitch, 1.00, 0.00, 0.00)
     # glRotatef(roll , 0.00, 1.00, 0.00)
 
     glBegin(GL_QUADS)
+
     glColor3f(0.0, 1.0, 0.0)
     glVertex3f(1.0, 0.2, -1.0)
     glVertex3f(-1.0, 0.2, -1.0)
@@ -92,6 +103,7 @@ def draw(angles) -> None:
     glVertex3f(1.0, 0.2, 1.0)
     glVertex3f(1.0, -0.2, 1.0)
     glVertex3f(1.0, -0.2, -1.0)
+
     glEnd()
 
 
@@ -105,9 +117,6 @@ def initWindow():
 
 
 def resizewin(width, height):
-    """
-    For resizing window
-    """
     if height == 0:
         height = 1
     glViewport(0, 0, width, height)
@@ -118,14 +127,7 @@ def resizewin(width, height):
     glLoadIdentity()
 
 
-"""
-	* NED reference frame: North, East, Down 
-"""
-
-
-def process_data(
-    acc_path: str, gyro_path: str, mag_path: str, frame="NED"
-) -> np.ndarray:
+def process_data(acc_path: str, gyro_path: str, mag_path: str, frame="NED") -> np.ndarray:
     # process data
     acc = pd.read_csv(f"../data/{acc_path}")
     gyro = pd.read_csv(f"../data/{gyro_path}")
@@ -209,4 +211,3 @@ def process_data(
 
 #         pygame.display.flip()
 #         pygame.time.wait(10)
-

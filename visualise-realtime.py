@@ -13,8 +13,10 @@
 # on message -> call update routine of kalman filter -> add this to buffer
 # draw loop takes the latest value from buffer to draw in screen
 
+from os import link
 import time
 import json
+import socket
 
 import numpy as np
 from numpy.core.fromnumeric import resize
@@ -29,28 +31,31 @@ from pygame.locals import *
 from OpenGL.GLU import *
 from OpenGL.GLU import *
 
+# import OpenGLContext
+
 from opengl import draw, initWindow, resizewin
 
 import threading, queue
 import csv
 from datetime import datetime
-from typing import Dict, List
 
-TOPIC = "sensornode/livestream"
+imu_topic = "stream/imu"
+jaw_angle_topic = "stream/jaw_angle"
+link_angle_topic = "stream/link_angle"
 
 q = queue.Queue()
-log_file = open("../logs/log.json", "a")
+# log_file = open("./logs/log.json", "a")
 
 
-def worker():
-    while True:
-        measurement = q.get()
-        # log data to txt file
-        # print("logging data...")
-        # acc_log.write(json.dumps(measurement))
-        json.dump(measurement, log_file)
-        # print(measurement)
-        q.task_done()
+# def worker():
+#     while True:
+#         measurement = q.get()
+#         # log data to txt file
+#         # print("logging data...")
+#         # acc_log.write(json.dumps(measurement))
+#         json.dump(measurement, log_file)
+#         # print(measurement)
+#         q.task_done()
 
 
 class OrientationViewer:
@@ -62,6 +67,7 @@ class OrientationViewer:
         # set callbacks
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
+        self.client.on_subscribe = self.on_subscribe
         # store host, port
         self.broker_host = broker_host
         self.broker_port = broker_port
@@ -82,11 +88,14 @@ class OrientationViewer:
         self.client.loop_start()
 
         # subscribe to the sensornode/livestream topic
-        print(f"Subscribing to topic {TOPIC}")
-        self.client.subscribe(TOPIC)
+        print(f"Subscribing to topics: {imu_topic}, {jaw_angle_topic}, {link_angle_topic}")
+        self.client.subscribe([(imu_topic, 0), (jaw_angle_topic, 0), (link_angle_topic, 0)])
 
         # start visualisation
         self.start()
+
+    def on_subscribe(self, client, userdata, mid, granted_qos):
+        print(mid)
 
     def disconnect_from_broker(self):
         if self.is_connected:
@@ -106,11 +115,17 @@ class OrientationViewer:
 
     def on_message(self, client, userdata, msg):
         decoded_msg = msg.payload.decode("utf-8")
-        sensor_data = json.loads(decoded_msg)
-        # print(sensor_data)
-        # add to queue for logging
-        q.put(sensor_data)
-        self.update_estimate(sensor_data)
+        # print(msg.topic, decoded_msg)
+        if msg.topic == link_angle_topic:
+            pass
+        elif msg.topic == jaw_angle_topic:
+            pass
+        elif msg.topic == imu_topic:
+            sensor_data = json.loads(decoded_msg)
+            # print(sensor_data)
+            # add to queue for logging
+            q.put(sensor_data)
+            self.update_estimate(sensor_data)
 
     def update_estimate(self, measurement):
         acc, gyro, mag = measurement["acc"], measurement["gyro"], measurement["mag"]
@@ -168,18 +183,20 @@ class OrientationViewer:
                 continue
 
             # print(q2rpy(self.Q[-1]))
-            draw(q2rpy(self.Q[-1]))
+            draw(self.Q[-1])
 
             pygame.display.flip()
             # pygame.time.wait(16)
 
 
-viewer = OrientationViewer("192.168.1.7", 8883)
+myIP = socket.gethostbyname_ex(socket.gethostname())[-1][-1]
+PORT = 8883
+viewer = OrientationViewer(myIP, PORT)
 # threading.Thread(target=worker, daemon=True).start()
 viewer.connect_to_broker()
 # block until all sensor data has been logged
 # q.join()
 # close log file
-log_file.close()
+# log_file.close()
 time.sleep(10)
 viewer.disconnect_from_broker()
