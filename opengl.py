@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import math
-
 from ahrs.filters import EKF
 from ahrs.common.orientation import acc2q
 from ahrs.common.quaternion import QuaternionArray
@@ -42,7 +41,6 @@ def quat_to_ypr(q):
 
 
 def draw(quat) -> None:
-    # print(f'drawing phone orientation... {angles}')
     # psi, theta, phi -> # yaw, pitch, roll
 
     # ? roll(x), pitch(y), yaw(z) -> Normal
@@ -174,40 +172,3 @@ def process_data(acc_path: str, gyro_path: str, mag_path: str, frame="NED") -> n
     print("Converted quaternions to euler angles")
 
     return euler_angles
-
-
-# euler_angles_ned = process_data(
-# 		acc_path="acc.csv",
-# 		gyro_path="ang_vel.csv",
-# 		mag_path="mag.csv",
-# 		frame='NED'
-# 	)
-
-# euler_angles_enu = process_data(
-# 		acc_path="acc.csv",
-# 		gyro_path="ang_vel.csv",
-# 		mag_path="mag.csv",
-# 		frame='ENU'
-# 	)
-
-# num_samples = len(euler_angles_ned)
-
-
-# def main():
-#     pygame.init()
-#     display = (800, 600)
-#     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
-
-#     resizewin(800, 600)
-#     initWindow()
-
-#     for i in range(num_samples):
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 pygame.quit()
-#                 quit()
-
-#         draw(euler_angles_ned[i])
-
-#         pygame.display.flip()
-#         pygame.time.wait(10)
