@@ -21,9 +21,6 @@ imu_topic = "stream/imu"
 jaw_angle_topic = "stream/jaw_angle"
 link_angle_topic = "stream/link_angle"
 
-# q = queue.Queue()
-
-
 class OrientationViewer:
     def __init__(self, broker_host: str, broker_port: int):
         # Get armature:
@@ -50,8 +47,7 @@ class OrientationViewer:
         self.is_connected = False
         # orietation estimates
         self.Q = []
-        # initialise kalman filter object
-        # ? initialise filter object on arrival of first measurement
+        #? initialise filter object on arrival of first measurement
         # TODO set to frequency of phone sensors
         # self.ekf = EKF(frequency=10)
 
@@ -114,7 +110,7 @@ class OrientationViewer:
             gyro = np.array([gyro])
             mag = np.array([mag])
 
-            # initialise filter object on first measure
+              # initialise filter object on first measure
             self.ekf = EKF(gyr=gyro, acc=acc, mag=mag, frequency=20, frame="ENU")
             estimate = self.ekf.Q[0]
 
@@ -124,7 +120,6 @@ class OrientationViewer:
         else:
             # run the update step of the kalman filter
             # using the apriori estimate and current sensor measurements
-			
             estimate = self.ekf.update(q=self.Q[-1], gyr=gyro, acc=acc, mag=mag)
 
         # store it the orientation estimate for the next timestep

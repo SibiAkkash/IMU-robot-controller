@@ -46,15 +46,18 @@ class OrientationViewer:
         self.client = mqtt.Client(
             client_id="", clean_session=True, userdata=None, transport="websockets"
         )
+        
         # set callbacks
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         self.client.on_subscribe = self.on_subscribe
+
         # store host, port
         self.broker_host = broker_host
         self.broker_port = broker_port
 
         self.is_connected = False
+        
         # orietation estimates
         self.Q = []
         # initialise kalman filter object
@@ -63,6 +66,7 @@ class OrientationViewer:
         # self.ekf = EKF(frequency=10)
 
     def connect_to_broker(self):
+        
         self.client.connect(self.broker_host, self.broker_port)
 
         # runs a thread in the background that calls loop()
@@ -110,6 +114,7 @@ class OrientationViewer:
             self.update_estimate(sensor_data)
 
     def update_estimate(self, measurement):
+        
         acc, gyro, mag = measurement["acc"], measurement["gyro"], measurement["mag"]
 
         acc = np.array([acc["x"], acc["y"], acc["z"]])
@@ -117,13 +122,13 @@ class OrientationViewer:
         mag = np.array([mag["x"], mag["y"], mag["z"]])
 
         if len(self.Q) == 0:
-            # * this is the first measurement
+            # this is the first measurement
             # initialising the filter expects arguments as N x 3 array
             acc = np.array([acc])
             gyro = np.array([gyro])
             mag = np.array([mag])
 
-            # * initialise filter object on first measure
+            # initialise filter object on first measure
             self.ekf = EKF(gyr=gyro, acc=acc, mag=mag, frequency=20, frame="ENU")
             estimate = self.ekf.Q[0]
 
@@ -134,7 +139,7 @@ class OrientationViewer:
             # estimate = acc2q(acc)
 
         else:
-            # run the update step of the kalman filter
+            # run the update step of the kalman filter,
             # using the apriori estimate and current sensor measurements
             # estimate = self.ekf.update(q=self.Q[-1], gyr=gyro, acc=acc)
             estimate = self.ekf.update(q=self.Q[-1], gyr=gyro, acc=acc, mag=mag)
@@ -173,7 +178,6 @@ class OrientationViewer:
 
 # threading.Thread(target=worker, daemon=True).start()
 parser = argparse.ArgumentParser()
-
 
 myIP = socket.gethostbyname_ex(socket.gethostname())[-1][-1]
 PORT = 8883
